@@ -9,7 +9,7 @@ import {
 } from "@heroicons/react/outline";
 import { HomeIcon } from "@heroicons/react/solid";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { Router, useRouter } from "next/router";
 import { modalState } from "../atoms/modalAtom";
 import { useRecoilState } from "recoil";
 
@@ -27,7 +27,7 @@ function Header() {
           className="relative hidden lg:inline-grid w-24 cursor-pointer"
         >
           <Image
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Instagram_logo.svg/800px-Instagram_logo.svg.png"
+            src="https://www.instagram.com/static/images/web/mobile_nav_type_logo.png/735145cfe0a4.png"
             layout="fill"
             objectFit="contain"
           />
@@ -74,7 +74,7 @@ function Header() {
               <UserGroupIcon className="navBtn" />
               <HeartIcon className="navBtn" />
               <img
-                onClick={signOut}
+                onClick={() => router.push("./profile")}
                 src={session?.user?.image}
                 alt="profile pic"
                 className="h-10 w-10 rounded-full cursor-pointer"
