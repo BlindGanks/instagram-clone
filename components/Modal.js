@@ -33,6 +33,7 @@ function Modal() {
       profileImg: session.user.image,
       timestamp: serverTimestamp(),
       userEmail: session.user.email,
+      saves: [],
     });
 
     const imageRef = ref(storage, `posts/${docRef.id}/image`);

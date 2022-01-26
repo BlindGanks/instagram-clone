@@ -15,7 +15,9 @@ import { db } from "../firebase";
 
 export default function profile() {
   const { data: session } = useSession();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState();
+  const [savedItems, setSavedItems] = useState([]);
+  const [selectedContent, setSelectedContent] = useState([]);
   useEffect(
     () =>
       onSnapshot(
@@ -30,6 +32,24 @@ export default function profile() {
             _posts.push(doc);
           });
           setPosts(_posts);
+          setSelectedContent(_posts);
+        }
+      ),
+    [db]
+  );
+  useEffect(
+    () =>
+      onSnapshot(
+        query(
+          collection(db, "posts"),
+          where("saves", "array-contains", session.user.email)
+        ),
+        (docs) => {
+          const _savedItems = [];
+          docs.forEach((doc) => {
+            _savedItems.push(doc);
+          });
+          setSavedItems(_savedItems);
         }
       ),
     [db]
@@ -43,23 +63,33 @@ export default function profile() {
           {/* content*/}
           <div className="max-w-4xl mx-auto border-t-[1px] border-gray-300">
             <div className="h-12 flex justify-center space-x-10">
-              <span className="h-full -mt-px w-16 flex items-center justify-between border-t-[1px] border-black">
-                <ViewGridIcon className="h-4 w-4" />
+              <span
+                onClick={() => setSelectedContent(posts)}
+                className={`h-full -mt-px w-16 flex items-center justify-between border-t-[1px] cursor-pointer opacity-40 ${
+                  selectedContent === posts && "border-black opacity-100"
+                }`}
+              >
+                <ViewGridIcon className="h-4 w-4 cursor-pointer" />
                 POSTS
               </span>
-              <span className="h-full -mt-px w-16 flex items-center justify-between border-t-[1px] opacity-40">
+              <span
+                onClick={() => setSelectedContent(savedItems)}
+                className={`h-full -mt-px w-16 flex items-center justify-between border-t-[1px] cursor-pointer opacity-40 ${
+                  selectedContent === savedItems && "border-black opacity-100"
+                }`}
+              >
                 <BookmarkIcon className="h-4 w-4" />
                 SAVED
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1 md:gap-7">
-              {posts.map((post) => {
+              {selectedContent.map((item) => {
                 return (
-                  <div key={post.id} className="flex-1">
+                  <div key={item.id} className="flex-1">
                     <img
                       className="w-full lg:h-72 "
-                      src={post.data().image}
-                      alt="post img"
+                      src={item.data().image}
+                      alt="item img"
                     />
                   </div>
                 );

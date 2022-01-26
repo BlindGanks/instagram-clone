@@ -21,7 +21,6 @@ export default function Posts() {
       ),
     [db]
   );
-  console.log(posts);
   return (
     <div>
       {posts.map((post) => (
@@ -32,6 +31,7 @@ export default function Posts() {
           userImg={post.data().profileImg}
           img={post.data().image}
           caption={post.data().caption}
+          saves={post.data().saves}
         />
       ))}
     </div>

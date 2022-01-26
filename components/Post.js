@@ -7,10 +7,15 @@ import {
   HeartIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/outline";
-import { HeartIcon as HeartIconFilled } from "@heroicons/react/solid";
+import {
+  BookmarkIcon as BookmarkIconFilled,
+  HeartIcon as HeartIconFilled,
+} from "@heroicons/react/solid";
 import { useSession } from "next-auth/react";
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -19,16 +24,18 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db, storage } from "../firebase";
 import Moment from "react-moment";
 
-function Post({ username, id, img, userImg, caption }) {
+function Post({ username, id, img, userImg, caption, saves }) {
   const { data: session } = useSession();
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState("");
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
 
   useEffect(
     () =>
@@ -58,7 +65,13 @@ function Post({ username, id, img, userImg, caption }) {
       ),
     [likes]
   );
-
+  useEffect(
+    () =>
+      setHasSaved(
+        saves.findIndex((email) => email === session?.user?.email) !== -1
+      ),
+    [saves]
+  );
   const likePost = async () => {
     if (hasLiked) {
       await deleteDoc(doc(db, "posts", id, "likes", session.user.uid));
@@ -68,7 +81,17 @@ function Post({ username, id, img, userImg, caption }) {
       });
     }
   };
-
+  const savePost = async () => {
+    if (hasSaved) {
+      await updateDoc(doc(db, "posts", id), {
+        saves: arrayRemove(session.user.email),
+      });
+    } else {
+      await updateDoc(doc(db, "posts", id), {
+        saves: arrayUnion(session.user.email),
+      });
+    }
+  };
   const sendComment = async (e) => {
     e.preventDefault();
     const commentToSend = comment;
@@ -110,7 +133,11 @@ function Post({ username, id, img, userImg, caption }) {
             <ChatIcon className="btn" />
             <PaperAirplaneIcon className="btn" />
           </div>
-          <BookmarkIcon className="btn" />
+          {hasSaved ? (
+            <BookmarkIconFilled className="btn" onClick={savePost} />
+          ) : (
+            <BookmarkIcon className="btn" onClick={savePost} />
+          )}
         </div>
       )}
       {/* caption*/}
