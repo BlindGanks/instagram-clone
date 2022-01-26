@@ -1,20 +1,39 @@
 import { BookmarkIcon, ViewGridIcon } from "@heroicons/react/outline";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import Header from "../components/Header";
 import Profile from "../components/Profile";
-import faker from "@faker-js/faker";
 import { useEffect, useState } from "react";
+import Modal from "../components/Modal";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
-function profile() {
+export default function profile() {
   const { data: session } = useSession();
   const [posts, setPosts] = useState([]);
-  useEffect(() => {
-    const _posts = [...Array(20)].map((_, i) => ({
-      ...faker.helpers.contextualCard(),
-      id: i,
-    }));
-    setPosts(_posts);
-  }, []);
+  useEffect(
+    () =>
+      onSnapshot(
+        query(
+          collection(db, "posts"),
+          where("userEmail", "==", session.user.email),
+          orderBy("timestamp", "desc")
+        ),
+        (docs) => {
+          const _posts = [];
+          docs.forEach((doc) => {
+            _posts.push(doc);
+          });
+          setPosts(_posts);
+        }
+      ),
+    [db]
+  );
   return (
     <div className="bg-gray-50 h-screen overflow-y-scroll scrollbar-hide">
       <Header />
@@ -34,21 +53,32 @@ function profile() {
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1 md:gap-7">
-              {posts.map((item) => (
-                <div className="flex-1">
-                  <img
-                    className="w-full lg:h-72 "
-                    src={item.avatar}
-                    alt="post img"
-                  />
-                </div>
-              ))}
+              {posts.map((post) => {
+                return (
+                  <div key={post.id} className="flex-1">
+                    <img
+                      className="w-full lg:h-72 "
+                      src={post.data().image}
+                      alt="post img"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </main>
+      <Modal />
     </div>
   );
 }
 
-export default profile;
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      session,
+    },
+  };
+}

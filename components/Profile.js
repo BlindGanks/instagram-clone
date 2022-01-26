@@ -2,7 +2,6 @@ import { useSession } from "next-auth/react";
 
 function Profile() {
   const { data: session } = useSession();
-
   return (
     <div className="flex lg:px-24 px-4 sm">
       <div className="flex-[0.3] mr-4">
@@ -15,10 +14,7 @@ function Profile() {
       <div className="flex-[0.6] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0">
           <h1 className="text-3xl font-thin mr-5">abdelhak_tebak</h1>
-          <a
-            className="w-full sm:w-auto text-center px-2 py-1 whitespace-nowrap rounded-[4px] border border-gray-300 font-medium text-sm"
-            href="/editprofile"
-          >
+          <a className="w-full sm:w-auto text-center px-2 py-1 whitespace-nowrap rounded-[4px] border border-gray-300 font-medium text-sm">
             Edit Profile
           </a>
         </div>

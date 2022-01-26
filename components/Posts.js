@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from "react";
 import Post from "./Post";
 import { db } from "../firebase";
-import {
-  addDoc,
-  collection,
-  doc,
-  serverTimestamp,
-  updateDoc,
-  onSnapshot,
-  query,
-  orderBy,
-} from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { useSession } from "next-auth/react";
 
-function Posts() {
+export default function Posts() {
   const [posts, setPosts] = useState([]);
-
+  const { data: session } = useSession();
   useEffect(
     () =>
       onSnapshot(
         query(collection(db, "posts"), orderBy("timestamp", "desc")),
-        (snapshot) => {
-          setPosts(snapshot.docs);
+        (docs) => {
+          const _posts = [];
+          docs.forEach((doc) => {
+            _posts.push(doc);
+          });
+          setPosts(_posts);
         }
       ),
-
     [db]
   );
-
+  console.log(posts);
   return (
     <div>
       {posts.map((post) => (
@@ -42,5 +37,3 @@ function Posts() {
     </div>
   );
 }
-
-export default Posts;
