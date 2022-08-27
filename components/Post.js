@@ -11,7 +11,6 @@ import {
   BookmarkIcon as BookmarkIconFilled,
   HeartIcon as HeartIconFilled,
 } from "@heroicons/react/solid";
-import { useSession } from "next-auth/react";
 import {
   addDoc,
   arrayRemove,
@@ -26,11 +25,13 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { db, storage } from "../firebase";
+import { db } from "../firebase";
 import Moment from "react-moment";
+import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
 
 function Post({ username, id, img, userImg, caption, saves }) {
-  const { data: session } = useSession();
+  const [user, setUser] = useRecoilState(userState);
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState("");
   const [likes, setLikes] = useState([]);
@@ -59,36 +60,30 @@ function Post({ username, id, img, userImg, caption, saves }) {
     [db, id]
   );
   useEffect(
-    () =>
-      setHasLiked(
-        likes.findIndex((like) => like.id === session?.user?.uid) !== -1
-      ),
+    () => setHasLiked(likes.findIndex((like) => like.id === user?.uid) !== -1),
     [likes]
   );
   useEffect(
-    () =>
-      setHasSaved(
-        saves.findIndex((email) => email === session?.user?.email) !== -1
-      ),
+    () => setHasSaved(saves.findIndex((id) => id === user?.uid) !== -1),
     [saves]
   );
   const likePost = async () => {
     if (hasLiked) {
-      await deleteDoc(doc(db, "posts", id, "likes", session.user.uid));
+      await deleteDoc(doc(db, "posts", id, "likes", user.uid));
     } else {
-      await setDoc(doc(db, "posts", id, "likes", session.user.uid), {
-        username: session.user.username,
+      await setDoc(doc(db, "posts", id, "likes", user.uid), {
+        username: user.displayName,
       });
     }
   };
   const savePost = async () => {
     if (hasSaved) {
       await updateDoc(doc(db, "posts", id), {
-        saves: arrayRemove(session.user.email),
+        saves: arrayRemove(user.uid),
       });
     } else {
       await updateDoc(doc(db, "posts", id), {
-        saves: arrayUnion(session.user.email),
+        saves: arrayUnion(user.uid),
       });
     }
   };
@@ -98,12 +93,11 @@ function Post({ username, id, img, userImg, caption, saves }) {
     setComment("");
     await addDoc(collection(db, "posts", id, "comments"), {
       comment: commentToSend,
-      username: session.user.username,
-      userImage: session.user.image,
+      username: user.displayName,
+      userImage: user.photoURL,
       timestamp: serverTimestamp(),
     });
   };
-
   return (
     <div className="bg-white my-7 border rounded-sm">
       {/* header*/}
@@ -119,7 +113,7 @@ function Post({ username, id, img, userImg, caption, saves }) {
       {/* img*/}
       <img className="object-cover w-full" src={img} alt="" />
       {/* buttons*/}
-      {session && (
+      {user && (
         <div className="flex justify-between px-4 pt-4">
           <div className="flex space-x-4 ">
             {hasLiked ? (
@@ -170,7 +164,7 @@ function Post({ username, id, img, userImg, caption, saves }) {
         </div>
       )}
       {/* input box*/}
-      {session && (
+      {user && (
         <form className="flex items-center p-4">
           <EmojiHappyIcon className="h-7 " />
           <input

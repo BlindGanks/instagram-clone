@@ -1,12 +1,13 @@
-import { useSession } from "next-auth/react";
+import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
 
-function Profile() {
-  const { data: session } = useSession();
+function Profile({ postsLength }) {
+  const [user, setUser] = useRecoilState(userState);
   return (
     <div className="flex lg:px-24 px-4 sm">
       <div className="flex-[0.3] mr-4">
         <img
-          src={session?.user?.image}
+          src={user?.photoURL}
           alt="profile pic"
           className="h-20 w-20 md:h-36 md:w-36 rounded-full cursor-pointer m-auto"
         />
@@ -19,11 +20,8 @@ function Profile() {
           </a>
         </div>
         <div className="flex flex-row sm:flex-col sm:justify-center space-x-3 sm:space-x-0 sm:space-y-4">
-          <h1>
-            <span className="font-semibold">18 </span>
-            posts
-          </h1>
-          <h1 className="font-semibold">{session?.user?.name}</h1>
+          <h1>{`${postsLength} posts`}</h1>
+          <h1 className="font-semibold">{user?.displayName}</h1>
         </div>
       </div>
     </div>

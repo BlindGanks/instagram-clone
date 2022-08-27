@@ -5,19 +5,22 @@ import {
   UserGroupIcon,
   HeartIcon,
   PaperAirplaneIcon,
-  MenuIcon,
 } from "@heroicons/react/outline";
 import { HomeIcon } from "@heroicons/react/solid";
-import { signIn, signOut, useSession } from "next-auth/react";
 import { Router, useRouter } from "next/router";
 import { modalState } from "../atoms/modalAtom";
 import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { signInWithGoogle } from "../firebaseAuth";
+import { useState } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 function Header() {
-  const { data: session } = useSession();
-  const router = useRouter();
+  const [user, setUser] = useRecoilState(userState);
   const [open, setOpen] = useRecoilState(modalState);
-
+  const [visibleUserMenu, setVisibleUserMenu] = useState(false);
+  const router = useRouter();
   return (
     <div className="shadow-sm border-b bg-white sticky top-0 z-50">
       <div className="flex justify-between max-w-6xl mx-5 xl:mx-auto">
@@ -58,8 +61,7 @@ function Header() {
         {/*right -- icons */}
         <div className="flex items-center justify-end space-x-4">
           <HomeIcon onClick={() => router.push("/")} className="navBtn" />
-          <MenuIcon className="h-10 md:hidden cursor-pointer" />
-          {session ? (
+          {user ? (
             <>
               <div className="relative navBtn ">
                 <PaperAirplaneIcon className="navBtn rotate-45" />
@@ -73,15 +75,51 @@ function Header() {
               />
               <UserGroupIcon className="navBtn" />
               <HeartIcon className="navBtn" />
-              <img
-                onClick={() => router.push("./profile")}
-                src={session?.user?.image}
-                alt="profile pic"
-                className="h-10 w-10 rounded-full cursor-pointer"
-              />
+              <div
+                onClick={() => setVisibleUserMenu(!visibleUserMenu)}
+                className="relative"
+              >
+                <img
+                  src={user?.photoURL}
+                  alt="profile pic"
+                  className="h-10 w-10 rounded-full cursor-pointer"
+                />
+                <div
+                  className={`absolute top-10 right-0 z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600 ${
+                    !visibleUserMenu && "hidden"
+                  }`}
+                  id="user-dropdown"
+                >
+                  <div className="py-3 px-4">
+                    <span className="block text-sm text-gray-900 dark:text-white">
+                      {user?.displayName}
+                    </span>
+                    <span className="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
+                      {user?.email}
+                    </span>
+                  </div>
+                  <ul>
+                    <li
+                      onClick={() =>
+                        router.pathname != "/profile" &&
+                        router.push("./profile")
+                      }
+                    >
+                      <a className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer">
+                        Profile
+                      </a>
+                    </li>
+                    <li onClick={() => signOut(auth)}>
+                      <a className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer">
+                        Sign out
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </>
           ) : (
-            <button onClick={signIn}>Sign in</button>
+            <button onClick={signInWithGoogle}>Sign in</button>
           )}
         </div>
       </div>

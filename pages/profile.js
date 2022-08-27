@@ -1,5 +1,4 @@
 import { BookmarkIcon, ViewGridIcon } from "@heroicons/react/outline";
-import { getSession, useSession } from "next-auth/react";
 import Header from "../components/Header";
 import Profile from "../components/Profile";
 import { useEffect, useState } from "react";
@@ -11,11 +10,14 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
+import { useRecoilState } from "recoil";
+import { userState } from "../atoms/userAtom";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function profile() {
-  const { data: session } = useSession();
-  const [posts, setPosts] = useState();
+  const [user, setUser] = useRecoilState(userState);
+  const [posts, setPosts] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
   const [selectedContent, setSelectedContent] = useState([]);
   useEffect(
@@ -23,7 +25,7 @@ export default function profile() {
       onSnapshot(
         query(
           collection(db, "posts"),
-          where("userEmail", "==", session.user.email),
+          where("userEmail", "==", user?.email || ""),
           orderBy("timestamp", "desc")
         ),
         (docs) => {
@@ -35,14 +37,14 @@ export default function profile() {
           setSelectedContent(_posts);
         }
       ),
-    [db]
+    [db, user]
   );
   useEffect(
     () =>
       onSnapshot(
         query(
           collection(db, "posts"),
-          where("saves", "array-contains", session.user.email)
+          where("saves", "array-contains", user?.uid || "")
         ),
         (docs) => {
           const _savedItems = [];
@@ -52,14 +54,25 @@ export default function profile() {
           setSavedItems(_savedItems);
         }
       ),
-    [db]
+    [db, user]
   );
+  useEffect(() => {
+    const authSubscriber = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const userCopy = JSON.parse(JSON.stringify(user));
+        setUser(userCopy);
+      } else {
+        setUser(null);
+      }
+    });
+    return authSubscriber;
+  }, []);
   return (
     <div className="bg-gray-50 h-screen overflow-y-scroll scrollbar-hide">
       <Header />
       <main className="max-w-6xl mx-auto">
         <div className="py-4 md:py-8 md:px-10 space-y-12">
-          <Profile />
+          <Profile postsLength={posts.length} />
           {/* content*/}
           <div className="max-w-4xl mx-auto border-t-[1px] border-gray-300">
             <div className="h-12 flex justify-center space-x-10">
@@ -101,14 +114,4 @@ export default function profile() {
       <Modal />
     </div>
   );
-}
-
-export async function getServerSideProps(context) {
-  const session = await getSession(context);
-
-  return {
-    props: {
-      session,
-    },
-  };
 }

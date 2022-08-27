@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import Post from "./Post";
 import { db } from "../firebase";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { useSession } from "next-auth/react";
 
 export default function Posts() {
   const [posts, setPosts] = useState([]);
-  const { data: session } = useSession();
   useEffect(
     () =>
       onSnapshot(

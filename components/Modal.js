@@ -12,12 +12,12 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { useSession } from "next-auth/react";
 import { ref, getDownloadURL, uploadString } from "firebase/storage";
+import { userState } from "../atoms/userAtom";
 
 function Modal() {
   const [open, setOpen] = useRecoilState(modalState);
-  const { data: session } = useSession();
+  const [user, setUser] = useRecoilState(userState);
   const [loading, setLoading] = useState(false);
   const filePickerRef = useRef();
   const captionRef = useRef();
@@ -28,11 +28,11 @@ function Modal() {
     setLoading(true);
 
     const docRef = await addDoc(collection(db, `posts`), {
-      username: session.user.username,
+      username: user.displayName,
       caption: captionRef.current.value,
-      profileImg: session.user.image,
+      profileImg: user.photoURL,
       timestamp: serverTimestamp(),
-      userEmail: session.user.email,
+      userEmail: user.email,
       saves: [],
     });
 
