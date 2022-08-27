@@ -11,14 +11,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
-/*const firebaseConfig = {
-  apiKey: "AIzaSyDlC4MOJhZAjveQ6avZXGV-f-XO5WoZN9I",
-  authDomain: "insta-clone-3fbd9.firebaseapp.com",
-  projectId: "insta-clone-3fbd9",
-  storageBucket: "insta-clone-3fbd9.appspot.com",
-  messagingSenderId: "472780886128",
-  appId: "1:472780886128:web:5d0a5244d282cedea764b5",
-};*/
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore();

@@ -8,6 +8,7 @@ const signInWithGoogle = () => {
     const errorMessage = error.message;
 
     alert("Failed to sign in");
+    console.log(error);
   });
 };
 
