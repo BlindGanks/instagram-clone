@@ -14,12 +14,14 @@ import { auth, db } from "../firebase";
 import { useRecoilState } from "recoil";
 import { userState } from "../atoms/userAtom";
 import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/router";
 
 export default function profile() {
   const [user, setUser] = useRecoilState(userState);
   const [posts, setPosts] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
   const [selectedContent, setSelectedContent] = useState([]);
+  const router = useRouter();
   useEffect(
     () =>
       onSnapshot(
@@ -63,6 +65,7 @@ export default function profile() {
         setUser(userCopy);
       } else {
         setUser(null);
+        router.pathname === "/profile" && router.push("/");
       }
     });
     return authSubscriber;
