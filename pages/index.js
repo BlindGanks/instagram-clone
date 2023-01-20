@@ -1,27 +1,10 @@
-import { useEffect } from "react";
 import Head from "next/head";
 import Header from "../components/Header.js";
 import Feed from "../components/Feed.js";
-import { userState } from "../atoms/userAtom.js";
-import { useRecoilState } from "recoil";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase.js";
 import Modal from "../components/Modal.js";
+import { getSession } from "next-auth/react";
 
 export default function Home() {
-  const [user, setUser] = useRecoilState(userState);
-  useEffect(() => {
-    const authSubscriber = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userCopy = JSON.parse(JSON.stringify(user));
-        setUser(userCopy);
-      } else {
-        setUser(null);
-      }
-    });
-    return authSubscriber;
-  }, []);
-
   return (
     <div className="bg-gray-50 h-screen overflow-y-scroll scrollbar-hide">
       <Head>
@@ -33,4 +16,14 @@ export default function Home() {
       <Modal />
     </div>
   );
+}
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      session,
+    },
+  };
 }

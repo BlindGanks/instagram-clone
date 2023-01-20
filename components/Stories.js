@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import Story from "./Story.js";
 import Faker from "@faker-js/faker";
 import { useRecoilState } from "recoil";
-import { userState } from "../atoms/userAtom.js";
+import { useSession } from "next-auth/react";
 function Stories() {
-  const [user, setUser] = useRecoilState(userState);
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
   const [stories, setStories] = useState([]);
   useEffect(() => {
     const _stories = [...Array(20)].map((_, i) => ({
@@ -15,7 +16,7 @@ function Stories() {
   }, []);
   return (
     <div className="flex space-x-2 p-6 bg-white mt-8 border-gray-200 border rounded-sm overflow-x-scroll scrollbar-thin scrollbar-thumb-black">
-      {user && <Story img={user.photoURL} username={user.displayName} />}
+      {user && <Story img={user.image} username={user.username} />}
       {stories.map((profile) => (
         <Story
           username={profile.username}

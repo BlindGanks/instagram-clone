@@ -11,17 +11,14 @@ import { HomeIcon as HomeIconOutline } from "@heroicons/react/outline";
 import { useRouter } from "next/router";
 import { modalState } from "../atoms/modalAtom";
 import { useRecoilState } from "recoil";
-import { userState } from "../atoms/userAtom";
-import { signInWithGoogle } from "../firebaseAuth";
 import { useState } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
-
+import { signIn, signOut, useSession } from "next-auth/react";
 function Header() {
-  const [user, setUser] = useRecoilState(userState);
   const [open, setOpen] = useRecoilState(modalState);
   const [visibleUserMenu, setVisibleUserMenu] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
   return (
     <div className="h-16 shadow-sm border-b bg-white sticky top-0 z-50">
       <div className="h-full flex items-center justify-between max-w-6xl mx-5 xl:mx-auto">
@@ -82,7 +79,7 @@ function Header() {
                 className="relative"
               >
                 <img
-                  src={user?.photoURL}
+                  src={user?.image}
                   alt="profile pic"
                   className="h-10 w-10 rounded-full cursor-pointer"
                 />
@@ -94,7 +91,7 @@ function Header() {
                 >
                   <div className="py-3 px-4">
                     <span className="block text-sm text-gray-900 dark:text-white">
-                      {user?.displayName}
+                      {user?.username}
                     </span>
                     <span className="block text-sm font-medium text-gray-500 truncate dark:text-gray-400">
                       {user?.email}
@@ -111,7 +108,7 @@ function Header() {
                         Profile
                       </a>
                     </li>
-                    <li onClick={() => signOut(auth)}>
+                    <li onClick={signOut}>
                       <a className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer">
                         Sign out
                       </a>
@@ -121,7 +118,7 @@ function Header() {
               </div>
             </>
           ) : (
-            <button onClick={signInWithGoogle}>Sign in</button>
+            <button onClick={signIn}>Sign in</button>
           )}
         </div>
       </div>

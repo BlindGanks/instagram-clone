@@ -10,18 +10,15 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { auth, db } from "../firebase";
-import { useRecoilState } from "recoil";
-import { userState } from "../atoms/userAtom";
-import { onAuthStateChanged } from "firebase/auth";
-import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import { db } from "../firebase";
 
 export default function profile() {
-  const [user, setUser] = useRecoilState(userState);
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
   const [posts, setPosts] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
   const [selectedContent, setSelectedContent] = useState([]);
-  const router = useRouter();
   useEffect(
     () =>
       onSnapshot(
@@ -58,18 +55,7 @@ export default function profile() {
       ),
     [db, user]
   );
-  useEffect(() => {
-    const authSubscriber = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userCopy = JSON.parse(JSON.stringify(user));
-        setUser(userCopy);
-      } else {
-        setUser(null);
-        router.pathname === "/profile" && router.push("/");
-      }
-    });
-    return authSubscriber;
-  }, []);
+
   return (
     <div className="bg-gray-50 h-screen overflow-y-scroll scrollbar-hide">
       <Header />

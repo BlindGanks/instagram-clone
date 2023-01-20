@@ -13,39 +13,42 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { ref, getDownloadURL, uploadString } from "firebase/storage";
-import { userState } from "../atoms/userAtom";
+import { useSession } from "next-auth/react";
 
 function Modal() {
   const [open, setOpen] = useRecoilState(modalState);
-  const [user, setUser] = useRecoilState(userState);
   const [loading, setLoading] = useState(false);
   const filePickerRef = useRef();
   const captionRef = useRef();
   const [selectedFile, setSelectedFile] = useState(null);
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
 
   const uploadPost = async () => {
     if (loading) return;
     setLoading(true);
+    try {
+      const docRef = await addDoc(collection(db, `posts`), {
+        username: user.username,
+        caption: captionRef.current.value,
+        profileImg: user.image,
+        timestamp: serverTimestamp(),
+        userEmail: user.email,
+        saves: [],
+      });
 
-    const docRef = await addDoc(collection(db, `posts`), {
-      username: user.displayName,
-      caption: captionRef.current.value,
-      profileImg: user.photoURL,
-      timestamp: serverTimestamp(),
-      userEmail: user.email,
-      saves: [],
-    });
-
-    const imageRef = ref(storage, `posts/${docRef.id}/image`);
-    await uploadString(imageRef, selectedFile, "data_url").then(
-      async (snapshot) => {
-        const downloadURL = await getDownloadURL(imageRef);
-        await updateDoc(doc(db, `posts/${docRef.id}`), {
-          image: downloadURL,
-        });
-      }
-    );
-
+      const imageRef = ref(storage, `posts/${docRef.id}/image`);
+      await uploadString(imageRef, selectedFile, "data_url").then(
+        async (snapshot) => {
+          const downloadURL = await getDownloadURL(imageRef);
+          await updateDoc(doc(db, `posts/${docRef.id}`), {
+            image: downloadURL,
+          });
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
     setOpen(false);
     setSelectedFile(null);
     setLoading(false);

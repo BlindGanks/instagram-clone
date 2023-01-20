@@ -1,19 +1,19 @@
 import { signOut } from "firebase/auth";
-import { useRecoilState } from "recoil";
-import { userState } from "../atoms/userAtom";
+import { useSession } from "next-auth/react";
 import { auth } from "../firebase";
 
 function MiniProfile() {
-  const [user, setUser] = useRecoilState(userState);
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
   return (
     <div className="flex items-center justify-between mt-14 ml-10">
       <img
-        src={user?.photoURL}
+        src={user?.image}
         alt="profilePic"
         className="rounded-full border p-[2px] w-16 h-16"
       />
       <div className="flex-1 mx-4">
-        <h2 className="font-bold">{user?.displayName}</h2>
+        <h2 className="font-bold">{user?.username}</h2>
         <h3 className="text-sm text-gray-400">welcome to insta</h3>
       </div>
 

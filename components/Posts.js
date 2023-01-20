@@ -10,6 +10,7 @@ export default function Posts() {
       onSnapshot(
         query(collection(db, "posts"), orderBy("timestamp", "desc")),
         (docs) => {
+          if (docs.empty) return;
           const _posts = [];
           docs.forEach((doc) => {
             _posts.push(doc);

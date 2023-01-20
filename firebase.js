@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 const firebaseConfig = {
@@ -12,10 +11,10 @@ const firebaseConfig = {
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore();
-const storage = getStorage();
-const googleAuthProvider = new GoogleAuthProvider();
-const auth = getAuth();
+const app = !getApps().length
+  ? initializeApp(firebaseConfig, "client-app")
+  : getApp("client-app");
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { app, db, storage, auth, googleAuthProvider };
+export { app, db, storage };

@@ -27,11 +27,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import Moment from "react-moment";
-import { useRecoilState } from "recoil";
-import { userState } from "../atoms/userAtom";
+import { useSession } from "next-auth/react";
 
 function Post({ username, id, img, userImg, caption, saves }) {
-  const [user, setUser] = useRecoilState(userState);
+  const { data: session } = useSession();
+  const { user } = session || { user: null };
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState("");
   const [likes, setLikes] = useState([]);
@@ -72,7 +72,7 @@ function Post({ username, id, img, userImg, caption, saves }) {
       await deleteDoc(doc(db, "posts", id, "likes", user.uid));
     } else {
       await setDoc(doc(db, "posts", id, "likes", user.uid), {
-        username: user.displayName,
+        username: user.username,
       });
     }
   };
@@ -93,8 +93,8 @@ function Post({ username, id, img, userImg, caption, saves }) {
     setComment("");
     await addDoc(collection(db, "posts", id, "comments"), {
       comment: commentToSend,
-      username: user.displayName,
-      userImage: user.photoURL,
+      username: user.username,
+      userImage: user.image,
       timestamp: serverTimestamp(),
     });
   };
